@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=ioquake3
+Comment=ioquake3
+Exec=AppRun
+Type=Application
+Icon=quake3
+Categories=Graphics;
+MimeType=application/x-iso9660-appimage;
+Name[en_IN]=ioquake3.desktop

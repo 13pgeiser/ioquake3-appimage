@@ -1,0 +1,8 @@
+#!/bin/bash
+export APPDIR="$(dirname "$(readlink -f "$0")")"
+export PATH="$APPDIR/bin/:$PATH"
+export LD_LIBRARY_PATH="$APPDIR:$PATH"
+export HOME="$OWD"
+"$APPDIR"/ioquake3.x86_64 +set com_homepath . "$@"
+
+
