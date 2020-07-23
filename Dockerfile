@@ -25,7 +25,9 @@ RUN set -ex \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 RUN set -ex \
-    && git clone https://github.com/ioquake/ioq3.git
+    && git clone https://github.com/ioquake/ioq3.git \
+    && cd ioq3 \
+    && git checkout 2b42f0bdab93284b291c29817f6401d8a156aa63
 
 RUN set -ex \
     && cd ioq3 \

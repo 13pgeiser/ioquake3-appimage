@@ -1,0 +1,16 @@
+language: minimal
+
+services:
+  - docker
+
+script:
+  - bash docker_build.sh
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file: "ioquake3.tgz"
+  skip_cleanup: true
+  on:
+    tags: true
+
