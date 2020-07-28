@@ -1,8 +1,27 @@
 #!/bin/bash
 export APPDIR="$(dirname "$(readlink -f "$0")")"
+
+if [ ! -e "$HOME"/.ioq3_id_license_accepted ]; then
+	cat "$APPDIR"/eula.txt
+	while true; do
+	    read -p "Accept?" yn
+	    case $yn in
+		[Yy]* ) break;;
+		[Nn]* ) exit;;
+		* ) echo "Please answer yes or no.";;
+	    esac
+	done
+	touch "$HOME"/.ioq3_id_license_accepted
+fi
+
 export PATH="$APPDIR/bin/:$PATH"
 export LD_LIBRARY_PATH="$APPDIR:$PATH"
 export HOME="$OWD"
-"$APPDIR"/ioquake3.x86_64 +set com_homepath . "$@"
+
+if [ "$1" == "server" ]; then
+	"$APPDIR"/ioq3ded.x86_64 +set com_homepath . "${@:2}"
+else
+	"$APPDIR"/ioquake3.x86_64 +set com_homepath . "$@"
+fi
 
 

@@ -67,6 +67,8 @@ COPY ioquake3.desktop AppDir/ioquake3.desktop
 
 COPY AppRun AppDir/AppRun
 
+COPY eula.txt AppDir/eula.txt
+
 RUN set -ex \
     && chmod a+x AppDir/AppRun \
     && export LD_LIBRARY_PATH=/AppDir/usr/lib/ ; find /AppDir/ -type f -executable -exec ldd {} \; | grep "not found" | true \
