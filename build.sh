@@ -4,7 +4,7 @@ source bash-helpers/helpers.sh
 docker_setup "ioquake3-appimage"
 dockerfile_create
 dockerfile_appimage
-cat >>$DOCKERFILE <<'EOF'
+cat >>"$DOCKERFILE" <<'EOF'
 RUN set -ex \
     && apt-get update \
     && apt-get dist-upgrade -y \
@@ -18,12 +18,12 @@ RUN set -ex \
 	libsdl2-dev \
 	libvorbis-dev \
 	libgl1 \
+        unzip \
     && apt-get clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 EOF
 dockerfile_switch_to_user
-docker_build_image_and_create_volume
-cat >>$DOCKERFILE <<'EOF'
+cat >>"$DOCKERFILE" <<'EOF'
 WORKDIR /work
 RUN set -ex \
     && git clone https://github.com/ioquake/ioq3.git \
@@ -55,29 +55,34 @@ RUN set -ex \
     && cp ioq3/build/release-linux-x86_64/*.so /work/AppDir \
     && cp ioq3/build/release-linux-x86_64/baseq3/*.so /work/AppDir/baseq3 \
     && cp ioq3/build/release-linux-x86_64/missionpack/*.so /work/AppDir/missionpack
-RUN set -ex \
-    && wget https://ioquake3.org/files/1.36/data/ioquake3-q3a-1.32-9.run \
-    && wget https://ftp.gwdg.de/pub/misc/ftp.idsoftware.com/idstuff/quake3/linux/linuxq3ademo-1.11-6.x86.gz.sh
 COPY ioquake3.desktop /work/AppDir/ioquake3.desktop
 COPY eula.txt /work/AppDir/eula.txt
 RUN set -ex \
     && export LD_LIBRARY_PATH=/work/AppDir/usr/lib/ ; find /work/AppDir/ -type f -executable -exec ldd {} \; | grep "not found" | true \
     && cp /usr/lib/libopus* AppDir \
     && ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir \
-    && bash ioquake3-q3a-1.32-9.run --target data || true \
-    && bash linuxq3ademo-1.11-6.x86.gz.sh -target demo || true \
     && mkdir -p /work/ioquake3 \
-    && cp ioquake3-x86_64.AppImage /work/ioquake3 \
+    && cp ioquake3-x86_64.AppImage /work/ioquake3
+RUN set -ex \
+    && wget https://files.ioquake3.org/quake3-latest-pk3s.zip
+RUN set -ex \
+    && unzip quake3-latest-pk3s.zip \
     && mkdir -p /work/ioquake3/baseq3 \
-    && tar xvf data/idpatchpk3s.tar -C /work/ioquake3/baseq3 \
+    && cp quake3-latest-pk3s/baseq3/* /work/ioquake3/baseq3 \
     && mkdir -p /work/ioquake3/missionpack  \
-    && tar xvf data/idtapatchpk3s.tar -C /work/ioquake3/missionpack \
+    && cp quake3-latest-pk3s/missionpack/* /work/ioquake3/missionpack
+RUN set -ex \
+    && wget https://ftp.gwdg.de/pub/misc/ftp.idsoftware.com/idstuff/quake3/linux/linuxq3ademo-1.11-6.x86.gz.sh
+RUN set -ex \
+    && bash linuxq3ademo-1.11-6.x86.gz.sh -target demo || true \
     && cp demo/demoq3/pak0.pk3 /work/ioquake3/baseq3 \
+    && chmod 644 ioquake3/baseq3/*
+RUN set -ex \
     && tar cvzf ioquake3.tgz ioquake3
+RUN ls -al ioquake3/baseq3
 EOF
 docker_build_image_and_create_volume
-#run_shfmt_and_shellcheck
-#$DOCKER_RUN_IT "$@"
+run_shfmt_and_shellcheck
 if [ $# -eq 0 ]; then
 	$DOCKER_RUN_I cp ioquake3.tgz /mnt
 else
