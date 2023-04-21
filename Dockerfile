@@ -1,11 +1,46 @@
-#!/bin/bash
-set -ex
-source bash-scripts/helpers.sh
-run_shfmt_and_shellcheck ./*.sh
-docker_setup "ioquake3-appimage"
-dockerfile_create
-dockerfile_appimage
-cat >>"$DOCKERFILE" <<'EOF'
+# Automatically created!
+# DO NOT EDIT!
+FROM debian:buster-slim
+# Configure current user
+ARG USER=host_user
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g $GID -o $USER
+RUN useradd -m -u $UID -g $GID -o -s /bin/bash $USER
+RUN mkdir -p /work
+RUN chown -R ${USER}.${USER} /work
+# Install base deps
+RUN set -ex \
+    && apt-get update \
+    && apt-get dist-upgrade -y \
+    && apt-get install -y --no-install-recommends \
+	git \
+	ca-certificates \
+	build-essential \
+	cmake \
+	autoconf \
+	automake \
+	libtool \
+	pkg-config \
+	wget \
+	xxd \
+	desktop-file-utils \
+	libglib2.0-dev \
+	libcairo2-dev \
+	fuse \
+	libfuse-dev \
+	zsync \
+	yasm \
+	strace \
+	adwaita-icon-theme \
+    && apt-get clean \
+    && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+COPY AppRun /work/AppDir/AppRun
+RUN set -ex \
+    && chmod a+x /work/AppDir/AppRun \
+    && wget https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage -P /work \
+    && chmod +x /work/appimagetool-x86_64.AppImage
+RUN chown -R ${USER}.${USER} /work
 RUN set -ex \
     && apt-get update \
     && apt-get dist-upgrade -y \
@@ -22,14 +57,14 @@ RUN set -ex \
         unzip \
     && apt-get clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-EOF
-dockerfile_switch_to_user
-cat >>"$DOCKERFILE" <<'EOF'
+USER $USER
+ENV PATH="/home/${USER}/.local/bin:${PATH}"
+WORKDIR /mnt
 WORKDIR /work
 RUN set -ex \
     && git clone https://github.com/ioquake/ioq3.git \
     && cd ioq3 \
-    && git checkout 47c9641939d84cfae249b38d2691d37ff84be817
+    && git checkout 2b42f0bdab93284b291c29817f6401d8a156aa63
 RUN set -ex \
     && cd ioq3 \
     && make -j \
@@ -81,14 +116,3 @@ RUN set -ex \
 RUN set -ex \
     && tar cvzf ioquake3.tgz ioquake3
 RUN ls -al ioquake3/baseq3
-EOF
-cp -f ioquake3.desktop "$(dirname "$DOCKERFILE")"
-cp -f eula.txt "$(dirname "$DOCKERFILE")"
-cp -f AppRun "$(dirname "$DOCKERFILE")"
-docker_build_image_and_create_volume
-mkdir -p release
-if [ $# -eq 0 ]; then
-	$DOCKER_RUN_I cp ioquake3.tgz /mnt/release
-else
-	$DOCKER_RUN_I "$@"
-fi

@@ -1,3 +1,4 @@
 ioquake3.tgz
 ioquake3/
-Dockerfile
+docker/
+release/
