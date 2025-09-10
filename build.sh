@@ -3,7 +3,7 @@ set -ex
 source bash-scripts/helpers.sh
 run_shfmt_and_shellcheck ./*.sh
 docker_setup "ioquake3-appimage"
-dockerfile_create
+dockerfile_create bookworm
 dockerfile_appimage
 cat >>"$DOCKERFILE" <<'EOF'
 RUN set -ex \
@@ -11,14 +11,14 @@ RUN set -ex \
     && apt-get dist-upgrade -y \
     && apt-get install -y --no-install-recommends \
         libncurses5 \
-	libcurl4-gnutls-dev \
-	libjpeg-dev \
-	libopenal-dev \
-	libopus-dev \
-	libopusfile-dev \
-	libsdl2-dev \
-	libvorbis-dev \
-	libgl1 \
+        libcurl4-gnutls-dev \
+        libjpeg-dev \
+        libopenal-dev \
+        libopus-dev \
+        libopusfile-dev \
+        libsdl2-dev \
+        libvorbis-dev \
+        libgl1 \
         unzip \
     && apt-get clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
@@ -33,19 +33,19 @@ RUN set -ex \
 RUN set -ex \
     && cd ioq3 \
     && make -j \
-	USE_CODEC_OPUS=1 \
-	USE_CODEC_VORBIS=1 \
-	USE_CURL=1 \
-	USE_CURL_DLOPEN=0 \
-	USE_INTERNAL_LIBS=0 \
-	USE_LOCAL_HEADERS=0 \
-	USE_OPENAL=1 \
-	USE_OPENAL_DLOPEN=0 \
-	USE_VOIP=1 \
-	BUILD_CLIENT=1 \
-	BUILD_CLIENT_SMP=1 \
-	BUILD_GAME_SO=1 \
-	BUILD_GAME_QVM=1
+        USE_CODEC_OPUS=1 \
+        USE_CODEC_VORBIS=1 \
+        USE_CURL=1 \
+        USE_CURL_DLOPEN=0 \
+        USE_INTERNAL_LIBS=0 \
+        USE_LOCAL_HEADERS=0 \
+        USE_OPENAL=1 \
+        USE_OPENAL_DLOPEN=0 \
+        USE_VOIP=1 \
+        BUILD_CLIENT=1 \
+        BUILD_CLIENT_SMP=1 \
+        BUILD_GAME_SO=1 \
+        BUILD_GAME_QVM=1
 RUN set -ex \
     && mkdir -p /work/AppDir \
     && mkdir -p /work/AppDir/baseq3 \
@@ -60,7 +60,6 @@ COPY ioquake3.desktop /work/AppDir/ioquake3.desktop
 COPY eula.txt /work/AppDir/eula.txt
 RUN set -ex \
     && export LD_LIBRARY_PATH=/work/AppDir/usr/lib/ ; find /work/AppDir/ -type f -executable -exec ldd {} \; | grep "not found" | true \
-    && cp /usr/lib/libopus* AppDir \
     && ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir \
     && mkdir -p /work/ioquake3 \
     && cp ioquake3-x86_64.AppImage /work/ioquake3
