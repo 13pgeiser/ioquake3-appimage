@@ -20,6 +20,7 @@ RUN set -ex \
         libvorbis-dev \
         libgl1 \
         unzip \
+        cmake \
     && apt-get clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 EOF
@@ -27,35 +28,23 @@ dockerfile_switch_to_user
 cat >>"$DOCKERFILE" <<'EOF'
 WORKDIR /work
 RUN set -ex \
-    && git clone https://github.com/ioquake/ioq3.git \
-    && cd ioq3 \
-    && git checkout 47c9641939d84cfae249b38d2691d37ff84be817
+    && git clone https://github.com/ioquake/ioq3.git
 RUN set -ex \
     && cd ioq3 \
-    && make -j \
-        USE_CODEC_OPUS=1 \
-        USE_CODEC_VORBIS=1 \
-        USE_CURL=1 \
-        USE_CURL_DLOPEN=0 \
-        USE_INTERNAL_LIBS=0 \
-        USE_LOCAL_HEADERS=0 \
-        USE_OPENAL=1 \
-        USE_OPENAL_DLOPEN=0 \
-        USE_VOIP=1 \
-        BUILD_CLIENT=1 \
-        BUILD_CLIENT_SMP=1 \
-        BUILD_GAME_SO=1 \
-        BUILD_GAME_QVM=1
+    && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build -j$(nproc)
+RUN set -ex \
+    ls -al ioq3/build/
 RUN set -ex \
     && mkdir -p /work/AppDir \
     && mkdir -p /work/AppDir/baseq3 \
     && mkdir -p /work/AppDir/missionpack \
     && cp ioq3/misc/quake3.svg /work/AppDir \
-    && cp ioq3/build/release-linux-x86_64/ioquake3.x86_64 /work/AppDir \
-    && cp ioq3/build/release-linux-x86_64/ioq3ded.x86_64 /work/AppDir \
-    && cp ioq3/build/release-linux-x86_64/*.so /work/AppDir \
-    && cp ioq3/build/release-linux-x86_64/baseq3/*.so /work/AppDir/baseq3 \
-    && cp ioq3/build/release-linux-x86_64/missionpack/*.so /work/AppDir/missionpack
+    && cp ioq3/build/Release/ioquake3 /work/AppDir \
+    && cp ioq3/build/Release/ioq3ded /work/AppDir \
+    && cp ioq3/build/Release/*.so /work/AppDir \
+    && cp ioq3/build/Release/baseq3/*.so /work/AppDir/baseq3 \
+    && cp ioq3/build/Release/missionpack/*.so /work/AppDir/missionpack
 COPY ioquake3.desktop /work/AppDir/ioquake3.desktop
 COPY eula.txt /work/AppDir/eula.txt
 RUN set -ex \
